@@ -20,12 +20,12 @@ Base.prepare(autoload_with=engine)
 
 # Save reference to the table
 measurement = Base.classes.measurement
-station =Base.classes.station
+station = Base.classes.station
 
 #################################################
 # Flask Setup
 #################################################
-app = Flask(__name__)
+app = Flask(station)
 
 
 #################################################
@@ -38,48 +38,49 @@ def welcome():
     return (
         f"Available Routes:<br/>"
         f"/api/v1.0/precipitation<br/>"
-        f"/api/v1.0/passengers"
+        f"/api/v1.0/station"
+        f"/api/v1.0/tobs"
+
     )
 
 
-@app.route("/api/v1.0/names")
+@app.route("/api/v1.0/station")
 def names():
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
-    """Return a list of all passenger names"""
+    """Return a list of all station names"""
     # Query all passengers
-    results = session.query(Passenger.name).all()
+    results = session.query(station.name).all()
 
     session.close()
 
     # Convert list of tuples into normal list
-    all_names = list(np.ravel(results))
+    all_stations = list(np.ravel(results))
+    return jsonify(all_stations)
 
-    return jsonify(all_names)
 
-
-@app.route("/api/v1.0/passengers")
-def passengers():
+@app.route("/api/v1.0/station")
+def station():
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
     """Return a list of passenger data including the name, age, and sex of each passenger"""
     # Query all passengers
-    results = session.query(Passenger.name, Passenger.age, Passenger.sex).all()
+    results = session.query(station.name, station.name, station.latitude,station.longitude,station.elevation).all()
 
     session.close()
 
     # Create a dictionary from the row data and append to a list of all_passengers
-    all_passengers = []
-    for name, age, sex in results:
-        passenger_dict = {}
-        passenger_dict["name"] = name
-        passenger_dict["age"] = age
-        passenger_dict["sex"] = sex
-        all_passengers.append(passenger_dict)
-
-    return jsonify(all_passengers)
+    all_stations = []
+    for name, latitude, longitude, elevation in results:
+        station_dict = {}
+        station_dict["name"] = name
+        station_dict["latitude"] = latitude
+        station_dict["longitude"] = longitude
+        station_dict["elevation"]= elevation
+        all_stations.append(station_dict)
+    return jsonify(all_stations)
 
 
 if __name__ == '__main__':
