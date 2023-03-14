@@ -4,8 +4,9 @@ import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, func
-
+import datetime as dt
 from flask import Flask, jsonify
+import pandas as pd
 
 
 #################################################
@@ -13,7 +14,7 @@ from flask import Flask, jsonify
 #################################################
 engine = create_engine("sqlite:///hawaii.sqlite")
 
-# reflect an existing database into a new model
+#reflect an existing database into a new model
 Base = automap_base()
 # reflect the tables
 Base.prepare(autoload_with=engine)
@@ -25,7 +26,7 @@ station = Base.classes.station
 #################################################
 # Flask Setup
 #################################################
-app = Flask(station)
+app = Flask(__name__)
 
 
 #################################################
@@ -44,43 +45,61 @@ def welcome():
     )
 
 
-@app.route("/api/v1.0/station")
-def names():
+@app.route("/api/v1.0/precipitation")
+def get_precipiation():
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
-    """Return a list of all station names"""
-    # Query all passengers
-    results = session.query(station.name).all()
+  
+    year_ago = dt.date(2017,8,23) - dt.timedelta(days=365)
+  # Perform a query to retrieve the date and precipitation scores
 
-    session.close()
+    prcp_results=session.query(measurement.date, measurement.prcp).filter(measurement.date>= year_ago).all()
+  # Save the query results as a Pandas DataFrame and set the index to the date column
+    prcp_df = pd.DataFrame(prcp_results, columns=['date','percipitation']).set_index('date')
 
-    # Convert list of tuples into normal list
-    all_stations = list(np.ravel(results))
-    return jsonify(all_stations)
+  # Create dict for percipitation
+    prcp_df=prcp_df.sort_index()
+
+    return prcp_df.to_dict()['percipitation']
 
 
 @app.route("/api/v1.0/station")
-def station():
+def get_stations():
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
     """Return a list of passenger data including the name, age, and sex of each passenger"""
-    # Query all passengers
-    results = session.query(station.name, station.name, station.latitude,station.longitude,station.elevation).all()
-
+    # Query station list 
+    results = results = session.query(station).all()
+    results = [r.name for r in results]
     session.close()
+    return {"stations": list(results)}
 
-    # Create a dictionary from the row data and append to a list of all_passengers
-    all_stations = []
-    for name, latitude, longitude, elevation in results:
-        station_dict = {}
-        station_dict["name"] = name
-        station_dict["latitude"] = latitude
-        station_dict["longitude"] = longitude
-        station_dict["elevation"]= elevation
-        all_stations.append(station_dict)
-    return jsonify(all_stations)
+@app.route("/api/v1.0/tobs")
+def get_tobs():
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+
+    year_ago = dt.date(2017,8,23) - dt.timedelta(days=365)
+
+    
+    # Query station list and create dataframe
+    most_active_station =session.query(measurement.station,func.count(measurement.station)).group_by(measurement.station).order_by(func.count(measurement.station).desc()).all()[0][0]
+
+    most_active_results=session.query(measurement.date,measurement.tobs).filter(measurement.date>= year_ago).filter(measurement.station == most_active_station).all()
+
+    most_active_df = pd.DataFrame(most_active_results,columns=['date','tobs']).set_index('date')
+
+    # create dict for tobs 
+    most_active_df=most_active_df.sort_index()
+
+    return most_active_df.to_dict()['tobs']
+
+
+ 
+
+    
 
 
 if __name__ == '__main__':
