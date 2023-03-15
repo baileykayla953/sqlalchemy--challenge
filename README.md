@@ -60,6 +60,25 @@ Analyze and Explore Climate Data
 -close the session 
 
 
+## Design Your Climate App
+
+<img width="518" alt="image" src="https://user-images.githubusercontent.com/118647940/225169792-b8a85b7e-66fc-48b1-8ffb-f4ee07528d9a.png">
+
+-Creating Dependencies 
+
+-Create DataBase set up 
+
+-Create Flask set up 
+
+<img width="626" alt="image" src="https://user-images.githubusercontent.com/118647940/225170308-1185dfc5-5a57-466a-af59-ba0e4f1814f5.png">
+
+- Create app route for percipitation for date and measurement 
+
+<img width="920" alt="image" src="https://user-images.githubusercontent.com/118647940/225170751-9ee30cb4-2c6b-433b-bdfd-cc0c2f37861c.png">
+
+-Create app route for station and tobs 
+
+
 
 # Authors
 -Kayla Bailey     github:baileykayla953
